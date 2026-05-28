@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Freight Space & Weight Optimizer | Lufthansa Cargo Engine</title>
+    <meta name="description" content="Production-ready 3D bin packing optimizer for air freight containers featuring Center of Gravity safety envelopes.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="logo-area">
+            <span class="logo-icon">✈</span>
+            <div class="logo-text">
+                <h1>AeroPack 3D</h1>
+                <span>Lufthansa Cargo Optimization Service</span>
+            </div>
+        </div>
+        <div class="header-status">
+            <span class="status-indicator online"></span>
+            <span class="status-label">Optimization Engine Online</span>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+        <!-- LEFT COLUMN: CONTROLS & CARGO LIST -->
+        <section class="panel control-panel">
+            <div class="panel-header">
+                <h2>1. Container & Load Config</h2>
+            </div>
+            
+            <!-- ULD Select Preset -->
+            <div class="form-group">
+                <label for="uld-preset">Select Unit Load Device (ULD) Preset</label>
+                <select id="uld-preset" class="form-control">
+                    <option value="LD3" selected>AKE / LD3 Container (Standard Belly Cargo)</option>
+                    <option value="LD7">P1P / LD7 Pallet (Main Deck / Wide Pallet)</option>
+                    <option value="LD11">PLA / LD11 Pallet (Flexible Lower Deck)</option>
+                    <option value="custom">Custom Container Configuration...</option>
+                </select>
+            </div>
+
+            <!-- Custom Container Parameters (Hidden by default, shown if custom selected) -->
+            <div id="custom-container-fields" class="custom-fields-grid hidden">
+                <div class="form-group">
+                    <label for="uld-weight">Max Weight (kg)</label>
+                    <input type="number" id="uld-weight" class="form-control" value="1588" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="uld-length">Length (cm)</label>
+                    <input type="number" id="uld-length" class="form-control" value="156" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="uld-width">Width (cm)</label>
+                    <input type="number" id="uld-width" class="form-control" value="153" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="uld-height">Height (cm)</label>
+                    <input type="number" id="uld-height" class="form-control" value="160" min="1">
+                </div>
+                <div class="form-group wide">
+                    <label for="uld-cog-dev">Max CoG Deviation Allowed (%)</label>
+                    <input type="number" id="uld-cog-dev" class="form-control" value="15" min="1" max="50">
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="panel-header sub-header">
+                <h2>2. Cargo Manifest</h2>
+                <div class="preset-buttons">
+                    <button type="button" id="btn-preset-standard" class="btn btn-secondary btn-xs">Standard Manifest</button>
+                    <button type="button" id="btn-preset-heavy" class="btn btn-secondary btn-xs">Heavy & Unbalanced</button>
+                    <button type="button" id="btn-preset-clear" class="btn btn-danger btn-xs">Clear All</button>
+                </div>
+            </div>
+
+            <!-- Add Cargo Item Form -->
+            <form id="cargo-form" class="cargo-form-grid">
+                <div class="form-group">
+                    <label for="cargo-id">Cargo ID</label>
+                    <input type="text" id="cargo-id" class="form-control" placeholder="BOX-A1">
+                </div>
+                <div class="form-group">
+                    <label for="cargo-weight">Weight (kg)</label>
+                    <input type="number" id="cargo-weight" class="form-control" placeholder="120" min="1" step="any">
+                </div>
+                <div class="form-group">
+                    <label for="cargo-l">L (cm)</label>
+                    <input type="number" id="cargo-l" class="form-control" placeholder="50" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="cargo-w">W (cm)</label>
+                    <input type="number" id="cargo-w" class="form-control" placeholder="40" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="cargo-h">H (cm)</label>
+                    <input type="number" id="cargo-h" class="form-control" placeholder="60" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="cargo-val">Val ($)</label>
+                    <input type="number" id="cargo-val" class="form-control" placeholder="2500" min="1">
+                </div>
+                <div class="form-group checkbox-group wide">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="cargo-fragile">
+                        <span class="checkmark"></span>
+                        Mark Cargo as Fragile (Aviation Crush Prevention)
+                    </label>
+                </div>
+                <div class="form-group wide">
+                    <button type="submit" class="btn btn-primary btn-block">Add to Manifest</button>
+                </div>
+            </form>
+
+            <!-- Manifest List Table -->
+            <div class="manifest-list-container">
+                <table class="data-table" id="manifest-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Weight</th>
+                            <th>Dims (L×W×H)</th>
+                            <th>Value</th>
+                            <th>Fragile</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manifest-list-body">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="action-bar">
+                <button id="btn-optimize" class="btn btn-accent btn-large btn-block">
+                    <span>Calculate Optimal Placement</span>
+                    <span class="btn-subtext">3D Packing & CoG Solver</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: ANALYTICS & VISUALIZATION -->
+        <section class="right-column">
+            <!-- TOP SECTION: KEY METRICS -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <span class="metric-label">Volume Utilization</span>
+                    <div class="metric-value-container">
+                        <span class="metric-value" id="metric-volume">0.0%</span>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="progress-volume" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Weight Utilization</span>
+                    <div class="metric-value-container">
+                        <span class="metric-value" id="metric-weight">0.0%</span>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="progress-weight" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Total Commercial Value</span>
+                    <div class="metric-value-container">
+                        <span class="metric-value" id="metric-value">$0.00</span>
+                        <span class="metric-sub" id="metric-count">0 / 0 Packed</span>
+                    </div>
+                </div>
+                <div class="metric-card" id="card-cog-status">
+                    <span class="metric-label">Center of Gravity (CoG)</span>
+                    <div class="metric-value-container">
+                        <span class="metric-value" id="metric-cog">SAFE</span>
+                        <span class="metric-sub" id="metric-cog-dev">Dev: X 0% | Y 0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MID SECTION: VISUALIZATIONS -->
+            <div class="visualizer-panel panel">
+                <div class="panel-header tabs-header">
+                    <h2>3. Cargo Placement & Stability Board</h2>
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" data-view="3d">Orthographic 3D View</button>
+                        <button class="tab-btn" data-view="cog">Center of Gravity Plot</button>
+                    </div>
+                </div>
+
+                <div class="visualizer-content">
+                    <!-- Tab 1: Orthographic 3D Canvas -->
+                    <div id="view-container-3d" class="tab-pane active">
+                        <div class="views-split">
+                            <div class="canvas-wrapper">
+                                <h3>Horizontal Layout (Top-Down X-Y Plane)</h3>
+                                <canvas id="canvas-top" width="340" height="280"></canvas>
+                                <span class="axis-label bottom-label">X Axis (Length)</span>
+                                <span class="axis-label left-label">Y Axis (Width)</span>
+                            </div>
+                            <div class="canvas-wrapper">
+                                <h3>Vertical Layout (Side-View X-Z Plane)</h3>
+                                <canvas id="canvas-side" width="340" height="280"></canvas>
+                                <span class="axis-label bottom-label">X Axis (Length)</span>
+                                <span class="axis-label left-label">Z Axis (Height)</span>
+                            </div>
+                        </div>
+                        <div class="visualizer-legend">
+                            <div class="legend-item"><span class="legend-color solid"></span><span>Solid Cargo</span></div>
+                            <div class="legend-item"><span class="legend-color fragile"></span><span>Fragile Cargo</span></div>
+                            <div class="legend-item"><span class="legend-color boundary"></span><span>ULD Outline</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: CoG Plot -->
+                    <div id="view-container-cog" class="tab-pane">
+                        <div class="cog-plot-container">
+                            <div class="canvas-wrapper single-canvas">
+                                <h3>Aviation Stability Target (Allowable Envelope)</h3>
+                                <canvas id="canvas-cog" width="340" height="340"></canvas>
+                                <p class="cog-helper">
+                                    The center cross represents the geometric center of the container. 
+                                    The **dashed amber square** defines the safe envelope ($\pm 12-15\%$ limit). 
+                                    The **blue target crosshair** represents the current calculated Center of Gravity.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTTOM SECTION: PACKED & UNPACKED LISTS -->
+            <div class="lists-panel-grid">
+                <div class="panel list-panel packed-list">
+                    <div class="panel-header">
+                        <h2 class="text-success">✔ Packed Item Layout</h2>
+                    </div>
+                    <div class="list-scroll">
+                        <table class="data-table small-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Start Coordinates (X, Y, Z)</th>
+                                    <th>Weight</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="packed-items-table-body">
+                                <tr><td colspan="4" class="empty-placeholder">No optimization run yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel list-panel unpacked-list">
+                    <div class="panel-header">
+                        <h2 class="text-danger">✖ Rejections & Safety Incidents</h2>
+                    </div>
+                    <div class="list-scroll">
+                        <table class="data-table small-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Weight</th>
+                                    <th>Exclusion Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unpacked-items-table-body">
+                                <tr><td colspan="3" class="empty-placeholder">No exclusion incidents logged</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 AeroPack 3D Logistics Engine. Specialized Aviation System built for Lufthansa Cargo portfolio.</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

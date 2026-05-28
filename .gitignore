@@ -1,13 +1,21 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+<<<<<<< HEAD
 *.py[codz]
+=======
+*.py[cod]
+>>>>>>> 6700763 (feat: initial commit of AeroPack 3D optimizer)
 *$py.class
 
 # C extensions
 *.so
 
 # Distribution / packaging
+<<<<<<< HEAD
 .Python
+=======
+bin/
+>>>>>>> 6700763 (feat: initial commit of AeroPack 3D optimizer)
 build/
 develop-eggs/
 dist/
@@ -24,6 +32,7 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+<<<<<<< HEAD
 MANIFEST
 
 # PyInstaller
@@ -216,3 +225,28 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+=======
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor / OS configs
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.DS_Store
+Thumbs.db
+>>>>>>> 6700763 (feat: initial commit of AeroPack 3D optimizer)
